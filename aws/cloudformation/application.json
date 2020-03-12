@@ -415,9 +415,8 @@
                           "\n",
                           [
                               "#!/bin/bash -xe ",
-                              "sudo yum update -y \n",
-                              "sudo yum install java-1.8.0-openjdk -y \n",
-                              "sudo yum install java-1.8.0-openjdk-devel -y \n",
+                              "sudo apt-get update \n",
+                              "sudo apt-get install openjdk-8-jdk \n",
                               "sudo chmod +x /etc \n",
                               "sudo chmod 777 /etc/profile.d \n",
                               "sudo echo username=dbuser >> /etc/profile.d/envvariable.sh \n",
@@ -523,6 +522,22 @@
       "EC2CSYE6225Role": {
           "Type": "AWS::IAM::Role",
           "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                      "Effect": "Allow",
+                      "Principal": {
+                          "Service": [
+                              "ec2.amazonaws.com"
+                          ]
+                      },
+                      "Action": [
+                          "sts:AssumeRole"
+                      ]
+                  }
+              ]
+          },
               "RoleName": "EC2-CSYE6225"
           },
           "Metadata": {
@@ -684,6 +699,7 @@
               "PubliclyAccessible": {
                   "Ref": "RDSPublicAccess"
               },
+              "AllocatedStorage": 50,
               "Engine": "MySQL",
               "DBInstanceClass": "db.t3.micro",
               "MultiAZ": false,
@@ -704,378 +720,6 @@
               "AWS::CloudFormation::Designer": {
                   "id": "f9e2fd50-d92d-477a-81a2-b0880bfb863f"
               }
-          }
-      }
-  },
-  "Metadata": {
-      "AWS::CloudFormation::Designer": {
-          "2cc0e10c-8db3-4a55-b4bb-dc6946868eda": {
-              "size": {
-                  "width": 60,
-                  "height": 60
-              },
-              "position": {
-                  "x": 810,
-                  "y": 390
-              },
-              "z": 1,
-              "embeds": []
-          },
-          "58ede66e-8694-460b-ba35-6cc573956bc6": {
-              "size": {
-                  "width": 60,
-                  "height": 60
-              },
-              "position": {
-                  "x": 930,
-                  "y": 390
-              },
-              "z": 1,
-              "embeds": []
-          },
-          "71e9c75e-7f73-49d9-994b-8517ba3864a5": {
-              "size": {
-                  "width": 60,
-                  "height": 60
-              },
-              "position": {
-                  "x": 810,
-                  "y": 510
-              },
-              "z": 1,
-              "embeds": [],
-              "isassociatedwith": [
-                  "58ede66e-8694-460b-ba35-6cc573956bc6"
-              ]
-          },
-          "a2990f3c-3185-4cb9-b18a-90a9cced4493": {
-              "size": {
-                  "width": 60,
-                  "height": 60
-              },
-              "position": {
-                  "x": 930,
-                  "y": 510
-              },
-              "z": 1,
-              "embeds": [],
-              "isassociatedwith": [
-                  "58ede66e-8694-460b-ba35-6cc573956bc6"
-              ]
-          },
-          "ec8bd185-4126-4507-b2c1-fd823be0f476": {
-              "size": {
-                  "width": 60,
-                  "height": 60
-              },
-              "position": {
-                  "x": 810,
-                  "y": 630
-              },
-              "z": 1,
-              "embeds": []
-          },
-          "eceb3881-b5fb-4ba6-8f83-cc08bd79f000": {
-              "size": {
-                  "width": 690,
-                  "height": 690
-              },
-              "position": {
-                  "x": 60,
-                  "y": 90
-              },
-              "z": 1,
-              "embeds": [
-                  "5592e1f0-97dd-4d08-8284-e102a102fe65",
-                  "b2941fa0-7635-488b-a509-45eac061fd6e",
-                  "d7ab319d-7103-412b-8a20-51cdbae45bfb",
-                  "99ebb65e-16cc-49bf-a72d-c584f8f78f4b",
-                  "ec4b7e62-e05d-4e4f-9c18-c2f33e7d36c8",
-                  "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c"
-              ]
-          },
-          "5592e1f0-97dd-4d08-8284-e102a102fe65": {
-              "size": {
-                  "width": 60,
-                  "height": 60
-              },
-              "position": {
-                  "x": 510,
-                  "y": 450
-              },
-              "z": 2,
-              "parent": "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-              "embeds": [],
-              "iscontainedinside": [
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000"
-              ]
-          },
-          "b2941fa0-7635-488b-a509-45eac061fd6e": {
-              "size": {
-                  "width": 60,
-                  "height": 60
-              },
-              "position": {
-                  "x": 510,
-                  "y": 570
-              },
-              "z": 2,
-              "parent": "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-              "embeds": [],
-              "iscontainedinside": [
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000"
-              ]
-          },
-          "d7ab319d-7103-412b-8a20-51cdbae45bfb": {
-              "size": {
-                  "width": 240,
-                  "height": 240
-              },
-              "position": {
-                  "x": 390,
-                  "y": 150
-              },
-              "z": 2,
-              "parent": "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-              "embeds": [
-                  "05de203a-36e4-4cba-ad0c-09cb00c6f605"
-              ],
-              "iscontainedinside": [
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000"
-              ]
-          },
-          "05de203a-36e4-4cba-ad0c-09cb00c6f605": {
-              "size": {
-                  "width": 60,
-                  "height": 60
-              },
-              "position": {
-                  "x": 420,
-                  "y": 210
-              },
-              "z": 3,
-              "parent": "d7ab319d-7103-412b-8a20-51cdbae45bfb",
-              "embeds": [],
-              "isassociatedwith": [
-                  "ec8bd185-4126-4507-b2c1-fd823be0f476"
-              ],
-              "iscontainedinside": [
-                  "d7ab319d-7103-412b-8a20-51cdbae45bfb",
-                  "d7ab319d-7103-412b-8a20-51cdbae45bfb",
-                  "d7ab319d-7103-412b-8a20-51cdbae45bfb",
-                  "d7ab319d-7103-412b-8a20-51cdbae45bfb",
-                  "d7ab319d-7103-412b-8a20-51cdbae45bfb",
-                  "d7ab319d-7103-412b-8a20-51cdbae45bfb",
-                  "d7ab319d-7103-412b-8a20-51cdbae45bfb",
-                  "d7ab319d-7103-412b-8a20-51cdbae45bfb",
-                  "d7ab319d-7103-412b-8a20-51cdbae45bfb"
-              ]
-          },
-          "a41f7408-1339-4a3a-a066-d1edd114e2b4": {
-              "source": {
-                  "id": "eceb3881-b5fb-4ba6-8f83-cc08bd79f000"
-              },
-              "target": {
-                  "id": "ec8bd185-4126-4507-b2c1-fd823be0f476"
-              },
-              "z": 1
-          },
-          "99ebb65e-16cc-49bf-a72d-c584f8f78f4b": {
-              "size": {
-                  "width": 150,
-                  "height": 150
-              },
-              "position": {
-                  "x": 300,
-                  "y": 450
-              },
-              "z": 2,
-              "parent": "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-              "embeds": [],
-              "iscontainedinside": [
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000"
-              ]
-          },
-          "97c623c2-2f7f-4668-9a28-18f415e7f81e": {
-              "source": {
-                  "id": "d7ab319d-7103-412b-8a20-51cdbae45bfb"
-              },
-              "target": {
-                  "id": "99ebb65e-16cc-49bf-a72d-c584f8f78f4b"
-              },
-              "z": 2
-          },
-          "ec4b7e62-e05d-4e4f-9c18-c2f33e7d36c8": {
-              "size": {
-                  "width": 150,
-                  "height": 150
-              },
-              "position": {
-                  "x": 90,
-                  "y": 450
-              },
-              "z": 2,
-              "parent": "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-              "embeds": [],
-              "iscontainedinside": [
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000"
-              ]
-          },
-          "d900a056-3b5a-4822-834d-9e273ba943d7": {
-              "size": {
-                  "width": 240,
-                  "height": 240
-              },
-              "position": {
-                  "x": 810,
-                  "y": 90
-              },
-              "z": 1,
-              "embeds": [
-                  "f9e2fd50-d92d-477a-81a2-b0880bfb863f"
-              ],
-              "iscontainedinside": [
-                  "ec4b7e62-e05d-4e4f-9c18-c2f33e7d36c8",
-                  "99ebb65e-16cc-49bf-a72d-c584f8f78f4b"
-              ]
-          },
-          "f9e2fd50-d92d-477a-81a2-b0880bfb863f": {
-              "size": {
-                  "width": 60,
-                  "height": 60
-              },
-              "position": {
-                  "x": 840,
-                  "y": 150
-              },
-              "z": 2,
-              "parent": "d900a056-3b5a-4822-834d-9e273ba943d7",
-              "embeds": [],
-              "isassociatedwith": [
-                  "b2941fa0-7635-488b-a509-45eac061fd6e"
-              ],
-              "iscontainedinside": [
-                  "d900a056-3b5a-4822-834d-9e273ba943d7",
-                  "d900a056-3b5a-4822-834d-9e273ba943d7",
-                  "d900a056-3b5a-4822-834d-9e273ba943d7",
-                  "d900a056-3b5a-4822-834d-9e273ba943d7",
-                  "d900a056-3b5a-4822-834d-9e273ba943d7",
-                  "d900a056-3b5a-4822-834d-9e273ba943d7",
-                  "d900a056-3b5a-4822-834d-9e273ba943d7",
-                  "d900a056-3b5a-4822-834d-9e273ba943d7",
-                  "d900a056-3b5a-4822-834d-9e273ba943d7"
-              ]
-          },
-          "692a40be-33a0-48cf-944f-32dfefe0bfa7": {
-              "source": {
-                  "id": "d7ab319d-7103-412b-8a20-51cdbae45bfb"
-              },
-              "target": {
-                  "id": "ec4b7e62-e05d-4e4f-9c18-c2f33e7d36c8"
-              },
-              "z": 2
-          },
-          "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c": {
-              "size": {
-                  "width": 240,
-                  "height": 240
-              },
-              "position": {
-                  "x": 90,
-                  "y": 150
-              },
-              "z": 2,
-              "parent": "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-              "embeds": [
-                  "aa55d4aa-9968-44e1-8d23-7f744a51a1a3"
-              ],
-              "iscontainedinside": [
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000",
-                  "eceb3881-b5fb-4ba6-8f83-cc08bd79f000"
-              ]
-          },
-          "aa55d4aa-9968-44e1-8d23-7f744a51a1a3": {
-              "size": {
-                  "width": 60,
-                  "height": 60
-              },
-              "position": {
-                  "x": 120,
-                  "y": 210
-              },
-              "z": 3,
-              "parent": "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c",
-              "embeds": [],
-              "isassociatedwith": [
-                  "5592e1f0-97dd-4d08-8284-e102a102fe65"
-              ],
-              "iscontainedinside": [
-                  "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c",
-                  "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c",
-                  "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c",
-                  "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c",
-                  "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c",
-                  "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c",
-                  "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c",
-                  "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c",
-                  "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c"
-              ]
-          },
-          "37323759-8c01-48a6-ac6d-b37b5e22010c": {
-              "source": {
-                  "id": "d7ab319d-7103-412b-8a20-51cdbae45bfb"
-              },
-              "target": {
-                  "id": "1092ba37-f4cd-44f6-9544-eb5ebcfb3d8c"
-              },
-              "z": 2
           }
       }
   }
