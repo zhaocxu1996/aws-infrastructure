@@ -56,7 +56,7 @@
       },
       "ImageId": {
           "Type": "String",
-          "Default": "ami-07ebfd5b3428b6f4d"
+          "Default": "ami-0c9619e1935752098"
       },
       "KeyName": {
           "Type": "String"
@@ -416,7 +416,6 @@
                           [
                               "#!/bin/bash -xe ",
                               "sudo apt-get update \n",
-                              "sudo apt-get install openjdk-8-jdk \n",
                               "sudo chmod +x /etc \n",
                               "sudo chmod 777 /etc/profile.d \n",
                               "sudo echo username=dbuser >> /etc/profile.d/envvariable.sh \n",
