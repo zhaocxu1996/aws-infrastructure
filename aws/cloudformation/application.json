@@ -55,7 +55,7 @@
         },
         "ImageId": {
             "Type": "String",
-            "Default": "ami-0dcfc15ceaac083d4"
+            "Default": "ami-03bb592f47b272571"
         },
         "KeyName": {
             "Type": "String"
