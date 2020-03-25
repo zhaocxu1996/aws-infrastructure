@@ -1,28 +1,64 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
     "Parameters": {
+        "vpc": {
+            "Description": "Cidr block for vpc",
+            "Default": "10.0.0.0/16",
+            "Type": "String"
+        },
+        "AvailabilityZone1": {
+            "Type": "String",
+            "Default": "a",
+            "AllowedValues": [
+                "a",
+                "b",
+                "c"
+            ]
+        },
+        "AvailabilityZone2": {
+            "Type": "String",
+            "Default": "b",
+            "AllowedValues": [
+                "a",
+                "b",
+                "c"
+            ]
+        },
+        "AvailabilityZone3": {
+            "Type": "String",
+            "Default": "c",
+            "AllowedValues": [
+                "a",
+                "b",
+                "c"
+            ]
+        },
+        "myvpcSubnet1": {
+            "Description": "Cidr block for Subnet1",
+            "Default": "10.0.16.0/20",
+            "Type": "String"
+        },
+        "myvpcSubnet2": {
+            "Description": "Cidr block for subnet2",
+            "Default": "10.0.32.0/20",
+            "Type": "String"
+        },
+        "myvpcSubnet3": {
+            "Description": "Cidr block for subnet3",
+            "Default": "10.0.64.0/20",
+            "Type": "String"
+        },
+        "DestinationBlock": {
+            "Description": "Cidr destination block for internet route",
+            "Type": "String",
+            "Default": "0.0.0.0/0"
+        },
         "ImageId": {
             "Type": "String",
-            "Default": "ami-01a714b8f0f176f9e"
+            "Default": "ami-0dcfc15ceaac083d4"
         },
         "KeyName": {
             "Type": "String"
-        },
-        "VpcId": {
-            "Type": "String",
-            "Default": "vpc-00a3b2aad466bdad8"
-        },
-        "Subnet1Id": {
-            "Type": "String",
-            "Default": "subnet-013ef1a6fc2285c1b"
-        },
-        "Subnet2Id": {
-            "Type": "String",
-            "Default": "subnet-075e5400213060965"
-        },
-        "Subnet3Id": {
-            "Type": "String",
-            "Default": "subnet-0d46c74ff8a053b6a"
         },
         "EC2Host": {
             "Type": "String",
@@ -30,6 +66,222 @@
         }
     },
     "Resources": {
+        "Myvpc": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "vpc"
+                },
+                "EnableDnsSupport": "true",
+                "EnableDnsHostnames": "true",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-csye6225-vpc"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "Subnet1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "Myvpc"
+                },
+                "CidrBlock": {
+                    "Ref": "myvpcSubnet1"
+                },
+                "AvailabilityZone": {"Fn::Join":["",[{"Ref":"AWS::Region"},{"Ref":"AvailabilityZone1"}]]},
+                "MapPublicIpOnLaunch": "true",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-csye6225-subnet1"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "Subnet2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "Myvpc"
+                },
+                "CidrBlock": {
+                    "Ref": "myvpcSubnet2"
+                },
+                "AvailabilityZone": {"Fn::Join":["",[{"Ref":"AWS::Region"},{"Ref":"AvailabilityZone2"}]]},
+                "MapPublicIpOnLaunch": "true",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-csye6225-subnet2"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "Subnet3": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "Myvpc"
+                },
+                "CidrBlock": {
+                    "Ref": "myvpcSubnet3"
+                },
+                "AvailabilityZone": {"Fn::Join":["",[{"Ref":"AWS::Region"},{"Ref":"AvailabilityZone3"}]]},
+                "MapPublicIpOnLaunch": "true",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-csye6225-subnet3"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "internetGateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-csye6225-ig"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "myVpcGatewayAttachment": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "InternetGatewayId": {
+                    "Ref": "internetGateway"
+                },
+                "VpcId": {
+                    "Ref": "Myvpc"
+                }
+            }
+        },
+        "myVpcRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "Myvpc"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "-csye6225-rt"
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "InternetRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "DestinationCidrBlock": {
+                    "Ref": "DestinationBlock"
+                },
+                "GatewayId": {
+                    "Ref": "internetGateway"
+                },
+                "RouteTableId": {
+                    "Ref": "myVpcRouteTable"
+                }
+            }
+        },
+        "mySubnetRouteTableAssociation1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "Subnet1"
+                },
+                "RouteTableId": {
+                    "Ref": "myVpcRouteTable"
+                }
+            }
+        },
+        "mySubnetRouteTableAssociation2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "Subnet2"
+                },
+                "RouteTableId": {
+                    "Ref": "myVpcRouteTable"
+                }
+            }
+        },
+        "mySubnetRouteTableAssociation3": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "Subnet3"
+                },
+                "RouteTableId": {
+                    "Ref": "myVpcRouteTable"
+                }
+            }
+        },
         "CodeDeployEC2S3": {
             "Type": "AWS::IAM::ManagedPolicy",
             "Properties": {
@@ -197,7 +449,8 @@
                 "ManagedPolicyArns": [
                     {
                         "Ref": "CodeDeployEC2S3"
-                    }
+                    },
+                    "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
                 ],
                 "RoleName": "CodeDeployEC2ServiceRole"
             }
@@ -243,7 +496,7 @@
                     }
                 ],
                 "SubnetId": {
-                    "Ref": "Subnet1Id"
+                    "Ref": "Subnet1"
                 },
                 "IamInstanceProfile": {
                     "Ref": "CodeDeployEC2ServiceRoleProfile"
@@ -309,6 +562,7 @@
                                 },
                                 "sudo echo export awsRDS >> /etc/profile.d/envvariable.sh \n",
                                 "sudo echo export bucketName >> /etc/profile.d/envvariable.sh \n",
+                                "mkdir /home/ubuntu/webapp",
                                 "source /etc/profile.d/envvariable.sh \n",
                                 "iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to-destination :8080"
                             ]
@@ -321,7 +575,7 @@
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
                 "VpcId": {
-                    "Ref": "VpcId"
+                    "Ref": "Myvpc"
                 },
                 "GroupDescription": "Allow TCP traffic on ports 22, 80, 443, 8080",
                 "SecurityGroupIngress": [
@@ -389,10 +643,10 @@
                 "DBSubnetGroupDescription": "Subnet group for RDS Instances",
                 "SubnetIds": [
                     {
-                        "Ref": "Subnet2Id"
+                        "Ref": "Subnet2"
                     },
                     {
-                        "Ref": "Subnet3Id"
+                        "Ref": "Subnet3"
                     }
                 ]
             }
@@ -401,7 +655,7 @@
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
                 "VpcId": {
-                    "Ref": "VpcId"
+                    "Ref": "Myvpc"
                 },
                 "GroupDescription": "Allow TCP traffic on port 3306 for MySQL",
                 "SecurityGroupIngress": [
