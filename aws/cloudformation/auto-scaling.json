@@ -1,0 +1,495 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "keyname": {
+            "Type": "String"
+        },
+        "AmiId": {
+            "Type": "String",
+            "Default": "ami-03bb592f47b272571"
+        },
+        "NameTag": {
+            "Type": "String",
+            "Default": "auto-scaling-host"
+        },
+        "Accountno": {
+            "Type": "String",
+            "Default": "896116135336"
+        },
+        "DomainName": {
+            "Type": "String",
+            "Default": "dev.zhaocxu.me."
+        },
+        "Subnet1Id": {
+            "Type": "String",
+            "Default": "subnet-0bc607696b30bc6af"
+        },
+        "Subnet2Id": {
+            "Type": "String",
+            "Default": "subnet-0ae25e23fa80b3f7e"
+        },
+        "Subnet3Id": {
+            "Type": "String",
+            "Default": "subnet-0292adc3fdec1ba5d"
+        },
+        "Subnet4Id": {
+            "Type": "String",
+            "Default": "subnet-0292adc3fdec1ba5d"
+        },
+        "VpcId": {
+            "Type": "String",
+            "Default": "vpc-03f517602990f991f"
+        },
+        "WebAppS3Bucket": {
+            "Type": "String",
+            "Default": "policy-stack-webapps3bucket-nr2tzhsoor5b"
+        },
+        "CertificateARN": {
+            "Type": "String",
+            "Default": "arn:aws:acm:us-east-1:896116135336:certificate/67d05d2a-d61b-49a7-bf42-724d356fd542"
+        }
+    },
+    "Resources": {
+        "asglaunchconfig": {
+            "Type": "AWS::AutoScaling::LaunchConfiguration",
+            "Properties": {
+                "ImageId": {
+                    "Ref": "AmiId"
+                },
+                "InstanceType": "t2.micro",
+                "KeyName": {
+                    "Ref": "keyname"
+                },
+                "IamInstanceProfile": "CodeDeployEC2ServiceRoleProfile",
+                "AssociatePublicIpAddress": true,
+                "SecurityGroups": [
+                    {
+                        "Ref": "AppHostSecurityGroup"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "#!/bin/bash -xe ",
+                                "sudo apt-get update \n",
+                                "sudo service codedeploy-agent status \n",
+                                "sudo chmod +x /etc \n",
+                                "sudo chmod 777 /etc/profile.d \n",
+                                "sudo echo username=dbuser >> /etc/profile.d/envvariable.sh \n",
+                                "sudo echo export username >> /etc/profile.d/envvariable.sh \n",
+                                "sudo echo password=csye6225password >> /etc/profile.d/envvariable.sh \n",
+                                "sudo echo export password >> /etc/profile.d/envvariable.sh \n",
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "echo awsRDS=jdbc:mysql://",
+                                            {
+                                                "Fn::GetAtt": [
+                                                    "RDSInstance",
+                                                    "Endpoint.Address"
+                                                ]
+                                            },
+                                            ":3306/csye6225 >> /etc/profile.d/envvariable.sh \n"
+                                        ]
+                                    ]
+                                },
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "sudo echo bucketName=",
+                                            {
+                                                "Ref": "WebAppS3Bucket"
+                                            },
+                                            ">> /etc/profile.d/envvariable.sh \n"
+                                        ]
+                                    ]
+                                },
+                                "sudo echo export awsRDS >> /etc/profile.d/envvariable.sh \n",
+                                "sudo echo export bucketName >> /etc/profile.d/envvariable.sh \n",
+                                "mkdir /home/ubuntu/webapp",
+                                "source /etc/profile.d/envvariable.sh \n",
+                                "iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to-destination :8080"
+                            ]
+                        ]
+                    }
+                },
+                "LaunchConfigurationName": "asg_launch_config"
+            }
+        },
+        "server": {
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "Properties": {
+                "VPCZoneIdentifier" : [
+                    {
+                        "Ref": "Subnet1Id"
+                    },
+                    {
+                        "Ref": "Subnet2Id"
+                    }
+                ],
+                "LaunchConfigurationName": {
+                    "Ref": "asglaunchconfig"
+                },
+                "MinSize": "2",
+                "MaxSize": "5",
+                "Cooldown": "60",
+                "DesiredCapacity": "3",
+                "TargetGroupARNs":[
+                    {
+                        "Ref":"ALBTargetGroup"
+                    }],
+                "Tags":[{
+                    "Key":"NAME",
+                    "Value":{"Ref":"NameTag"},
+                    "PropagateAtLaunch" : "true"
+                }]
+            }
+        },
+        "WebServerScaleUpPolicy": {
+            "Type": "AWS::AutoScaling::ScalingPolicy",
+            "Properties": {
+                "AdjustmentType": "ChangeInCapacity",
+                "AutoScalingGroupName": {
+                    "Ref": "server"
+                },
+                "Cooldown": "60",
+                "ScalingAdjustment": 1
+            }
+        },
+        "WebServerScaleDownPolicy": {
+            "Type": "AWS::AutoScaling::ScalingPolicy",
+            "Properties": {
+                "AdjustmentType": "ChangeInCapacity",
+                "AutoScalingGroupName": {
+                    "Ref": "server"
+                },
+                "Cooldown": "60",
+                "ScalingAdjustment": -1
+            }
+        },
+        "CPUAlarmHigh": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": "Scale-up if CPU > 5% for 5 minutes",
+                "MetricName": "CPUUtilization",
+                "Namespace": "AWS/EC2",
+                "Statistic": "Average",
+                "Period": 300,
+                "EvaluationPeriods": 1,
+                "Threshold": 5,
+                "AlarmActions": [
+                    {
+                        "Ref": "WebServerScaleUpPolicy"
+                    }
+                ],
+                "Dimensions": [
+                    {
+                        "Name": "AutoScalingGroupName",
+                        "Value": {
+                            "Ref": "server"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "GreaterThanThreshold"
+            }
+        },
+        "CPUAlarmLow": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": "Scale-down if CPU < 3% for 5 minutes",
+                "MetricName": "CPUUtilization",
+                "Namespace": "AWS/EC2",
+                "Statistic": "Average",
+                "Period": 300,
+                "EvaluationPeriods": 1,
+                "Threshold": 3,
+                "AlarmActions": [
+                    {
+                        "Ref": "WebServerScaleDownPolicy"
+                    }
+                ],
+                "Dimensions": [
+                    {
+                        "Name": "AutoScalingGroupName",
+                        "Value": {
+                            "Ref": "server"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "LessThanThreshold"
+            }
+        },
+        "AppLoadBalancer": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Subnets": [
+                    {
+                        "Ref": "Subnet1Id"
+                    },
+                    {
+                        "Ref": "Subnet2Id"
+                    }
+                ],
+                "SecurityGroups": [
+                    {
+                        "Ref":"loadbalancersecuritygroup"
+                    }
+                ],
+                "IpAddressType": "ipv4",
+                "Tags":[{
+                    "Key":"Name",
+                    "Value":"LoadBalancer"
+                }]
+            }
+        },
+        "ALBListner": {
+            "Type" : "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties" : {
+                "Certificates" :[{
+                    "CertificateArn":{"Ref":"CertificateARN"}
+                }],
+                "DefaultActions" : [{
+                    "Type" : "forward",
+                    "TargetGroupArn" : { "Ref" : "ALBTargetGroup" }
+                }],
+                "LoadBalancerArn" : { "Ref" : "AppLoadBalancer" },
+                "Port" : "443",
+                "Protocol" : "HTTPS"
+            }
+        },
+        "ALBTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "Name": "WebAppTargetGroup",
+                "HealthCheckIntervalSeconds": 10,
+                "HealthCheckTimeoutSeconds": 5,
+                "UnhealthyThresholdCount": 2,
+                "Protocol": "HTTP",
+                "Port": "8080",
+                "TargetGroupAttributes": [
+                    {
+                        "Key": "deregistration_delay.timeout_seconds",
+                        "Value": "20"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VpcId"
+                }
+            }
+        },
+        "DNSRecord": {
+            "Type": "AWS::Route53::RecordSetGroup",
+            "Properties": {
+                "HostedZoneName": {
+                    "Ref": "DomainName"
+                },
+                "RecordSets": [
+                    {
+                        "Name": {
+                            "Ref": "DomainName"
+                        },
+                        "Type": "A",
+                        "AliasTarget": {
+                            "DNSName": {
+                                "Fn::GetAtt": [
+                                    "AppLoadBalancer",
+                                    "DNSName"
+                                ]
+                            },
+                            "HostedZoneId": {
+                                "Fn::GetAtt": [
+                                    "AppLoadBalancer",
+                                    "CanonicalHostedZoneID"
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "RDSSubnetGroup": {
+            "Type": "AWS::RDS::DBSubnetGroup",
+            "Properties": {
+                "DBSubnetGroupDescription": "Subnet description of db subnets",
+                "SubnetIds": [
+                    {
+                        "Ref": "Subnet3Id"
+                    },
+                    {
+                        "Ref": "Subnet1Id"
+                    }
+                ]
+            }
+        },
+        "AppHostSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "GroupDescription": "Security group for web server",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 80,
+                        "ToPort": 80,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 8080,
+                        "ToPort": 8080,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            }
+        },
+        "loadbalancersecuritygroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupName": "LoadBalancer-Security-Group",
+                "GroupDescription": "Enable HTTP access via port 808, SSH access via port 22",
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 80,
+                        "ToPort": 80,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 8080,
+                        "ToPort": 8080,
+                        "DestinationSecurityGroupId": {
+                            "Fn::GetAtt": [
+                                "AppHostSecurityGroup",
+                                "GroupId"
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "DBServerSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
+                "GroupDescription": "Allow TCP traffic on port 3306 for MySQL",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 3306,
+                        "ToPort": 3306,
+                        "SourceSecurityGroupId": {
+                            "Ref": "AppHostSecurityGroup"
+                        }
+                    }
+                ]
+            }
+        },
+        "RDSInstance": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+                "AllocatedStorage": 50,
+                "Engine": "MySQL",
+                "DBInstanceClass": "db.t3.micro",
+                "DBInstanceIdentifier": "csye6225-spring2020-assignment7",
+                "MasterUsername": "dbuser",
+                "MasterUserPassword": "csye6225password",
+                "DBSubnetGroupName": {
+                    "Ref": "RDSSubnetGroup"
+                },
+                "DBName": "csye6225",
+                "VPCSecurityGroups": [
+                    {
+                        "Ref": "DBServerSecurityGroup"
+                    }
+                ]
+            }
+        },
+        "CodeDeployApplication": {
+            "Type": "AWS::CodeDeploy::Application",
+            "Properties": {
+                "ApplicationName": "csye6225-webapp",
+                "ComputePlatform": "Server"
+            }
+        },
+        "CodeDeployDeploymentGroup": {
+            "Type": "AWS::CodeDeploy::DeploymentGroup",
+            "Properties": {
+                "ApplicationName": {
+                    "Ref": "CodeDeployApplication"
+                },
+                "DeploymentGroupName": "csye6225-webapp-deployment",
+                "AutoScalingGroups":[{"Ref":"server"}],
+                "LoadBalancerInfo":{
+                    "TargetGroupInfoList":[{
+                        "Name":{ "Fn::GetAtt":["ALBTargetGroup","TargetGroupName"]}
+                    }]
+                  },
+                "ServiceRoleArn": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:aws:iam::",
+                            {
+                                "Ref": "Accountno"
+
+                            },
+                            ":role/CodeDeployServiceRole"
+                        ]
+                    ]
+                },
+                "DeploymentStyle": {
+                    "DeploymentOption": "WITHOUT_TRAFFIC_CONTROL",
+                    "DeploymentType": "IN_PLACE"
+                },
+                "Ec2TagFilters": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "NameTag"
+                        },
+                        "Type": "KEY_AND_VALUE"
+                    }
+                ],
+                "DeploymentConfigName": "CodeDeployDefault.AllAtOnce",
+                "AutoRollbackConfiguration": {
+                    "Enabled": "true",
+                    "Events": [
+                        "DEPLOYMENT_FAILURE"
+                    ]
+                }
+            }
+        }
+    }
+}

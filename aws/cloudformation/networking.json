@@ -50,7 +50,8 @@
         },
         "DestinationBlock": {
             "Description": "Cidr destination block for internet route",
-            "Type": "String"
+            "Type": "String",
+            "Default": "0.0.0.0/0"
         }
     },
     "Resources": {
