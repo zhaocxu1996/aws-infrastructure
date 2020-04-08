@@ -47,6 +47,14 @@
         "CertificateARN": {
             "Type": "String",
             "Default": "arn:aws:acm:us-east-1:896116135336:certificate/67d05d2a-d61b-49a7-bf42-724d356fd542"
+        },
+        "fromaddress": {
+            "Type": "String",
+            "Default": "assignment10@dev.zhaocxu.me"
+        },
+        "codedeploybucket": {
+            "Type": "String",
+            "Default": "codedeploy.zhaocxu.me"
         }
     },
     "Resources": {
@@ -108,8 +116,21 @@
                                         ]
                                     ]
                                 },
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "sudo echo TopicARN=",
+                                            {
+                                                "Ref": "SNS"
+                                            },
+                                            ">> /etc/profile.d/envvariable.sh \n"
+                                        ]
+                                    ]
+                                },
                                 "sudo echo export awsRDS >> /etc/profile.d/envvariable.sh \n",
                                 "sudo echo export bucketName >> /etc/profile.d/envvariable.sh \n",
+                                "sudo echo export TopicARN >> /etc/profile.d/envvariable.sh \n",
                                 "mkdir /home/ubuntu/webapp",
                                 "source /etc/profile.d/envvariable.sh \n",
                                 "iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to-destination :8080"
@@ -337,25 +358,45 @@
                         "IpProtocol": "tcp",
                         "FromPort": 80,
                         "ToPort": 80,
-                        "CidrIp": "0.0.0.0/0"
+                        "SourceSecurityGroupId": {
+                            "Fn::GetAtt": [
+                                "loadbalancersecuritygroup",
+                                "GroupId"
+                            ]
+                        }
                     },
                     {
                         "IpProtocol": "tcp",
                         "FromPort": 22,
                         "ToPort": 22,
-                        "CidrIp": "0.0.0.0/0"
+                        "SourceSecurityGroupId": {
+                            "Fn::GetAtt": [
+                                "loadbalancersecuritygroup",
+                                "GroupId"
+                            ]
+                        }
                     },
                     {
                         "IpProtocol": "tcp",
                         "FromPort": 443,
                         "ToPort": 443,
-                        "CidrIp": "0.0.0.0/0"
+                        "SourceSecurityGroupId": {
+                            "Fn::GetAtt": [
+                                "loadbalancersecuritygroup",
+                                "GroupId"
+                            ]
+                        }
                     },
                     {
                         "IpProtocol": "tcp",
                         "FromPort": 8080,
                         "ToPort": 8080,
-                        "CidrIp": "0.0.0.0/0"
+                        "SourceSecurityGroupId": {
+                            "Fn::GetAtt": [
+                                "loadbalancersecuritygroup",
+                                "GroupId"
+                            ]
+                        }
                     }
                 ]
             }
@@ -414,6 +455,32 @@
                         }
                     }
                 ]
+            }
+        },
+        "DynamoDBTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "id",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "id",
+                        "KeyType": "HASH"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": 10,
+                    "WriteCapacityUnits": 5
+                },
+                "TimeToLiveSpecification": {
+                "AttributeName": "TTl",
+                "Enabled": "TRUE"
+                },
+                "TableName": "csye6225"
             }
         },
         "RDSInstance": {
@@ -489,6 +556,88 @@
                         "DEPLOYMENT_FAILURE"
                     ]
                 }
+            }
+        },
+        "lambdaexecutionrole":{
+            "Type":"AWS::IAM::Role",
+            "Properties":{
+                "RoleName":"lambdaRole",
+                "AssumeRolePolicyDocument":{
+                    "Version":"2012-10-17",
+                    "Statement":[{
+                        "Effect":"Allow",
+                        "Principal":{
+                            "Service":["lambda.amazonaws.com"]
+                        },
+                        "Action":["sts:AssumeRole"]
+                    }]
+                },
+                "ManagedPolicyArns":[
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonSNSFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonSESFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+                ]
+            }
+        },
+        "lambadacloudwatch":{
+            "Type":"AWS::IAM::Policy",
+            "Properties":{
+                "PolicyName":"LambdaLogsPolicy",
+                "Roles":[{"Ref":"lambdaexecutionrole"}],
+                "PolicyDocument":{
+                    "Version":"2012-10-17",
+                    "Statement":[{
+                        "Action": [
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:PutLogEvents"
+                        ],
+                        "Effect": "Allow",
+                        "Resource": "arn:aws:logs:*:*:*"
+                    }]
+                }
+            }
+        },
+        "SNS":{
+            "Type":"AWS::SNS::Topic",
+            "Properties":{
+                "TopicName": "csye6225",
+                "Subscription":[{
+                    "Endpoint" : { "Fn::GetAtt" : [ "lambdafunction", "Arn" ] },
+                    "Protocol" : "lambda"
+                }]
+            }
+        },
+        "lambdaPermission": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "Action": "lambda:*",
+                "FunctionName": { "Fn::GetAtt": [ "lambdafunction", "Arn" ] },
+                "Principal": "sns.amazonaws.com",
+                "SourceArn": {"Ref":"SNS"}
+                }
+
+        },
+        "lambdafunction":{
+            "Type":"AWS::Lambda::Function",
+            "Properties":{
+                "FunctionName":"demo",
+                "MemorySize":512,
+                "Environment":{
+                    "Variables" : { "fromaddr": {"Ref":"fromaddress"}}
+                  },
+                "Code":{
+                    "S3Bucket":{"Ref":"codedeploybucket"},
+                    "S3Key":"lambda.zip"
+                },
+                "Role":{
+                    "Fn::GetAtt" : [ "lambdaexecutionrole", "Arn" ]
+                },
+                "Timeout": 90,
+                "Handler": "LogEvent::handleRequest",
+                "Runtime":"java8"
             }
         }
     }

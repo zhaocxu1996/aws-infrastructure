@@ -23,3 +23,8 @@ aws cloudformation wait stack-delete-complete --stack-name csye6225demo
 ## CREATE IAM STACK
 
 aws cloudformation create-stack --stack-name iam-stack --template-body file://iam.json --capabilities CAPABILITY_NAMED_IAM
+
+## BUILD AUTO SCALING STACK
+
+aws cloudformation create-stack --stack-name test --template-body file://auto-scaling.json --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=keyname,ParameterValue=awsdemo
+
