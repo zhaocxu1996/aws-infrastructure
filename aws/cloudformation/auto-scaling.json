@@ -57,7 +57,6 @@
                 "ImageId": {
                     "Ref": "AmiId"
                 },
-                "KeyName": "awsdemo",
                 "InstanceType": "t2.micro",
                 "IamInstanceProfile": "CodeDeployEC2ServiceRoleProfile",
                 "AssociatePublicIpAddress": true,
