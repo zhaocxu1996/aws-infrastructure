@@ -33,7 +33,7 @@
                             ],
                             "Effect": "Allow",
                             "Resource": [
-                                "arn:aws:s3:::codedeploy.zhaocxu.me*"
+                                "arn:aws:s3:::codedeploy.prod.zhaocxu.me*"
                             ]
                         }
                     ]
@@ -55,7 +55,7 @@
                                 "s3:List*"
                             ],
                             "Resource": [
-                                "arn:aws:s3:::codedeploy.zhaocxu.me*"
+                                "arn:aws:s3:::codedeploy.prod.zhaocxu.me*"
                             ]
                         }
                     ]
@@ -79,7 +79,7 @@
                                 "codedeploy:GetApplicationRevision"
                             ],
                             "Resource": [
-                                "arn:aws:codedeploy:us-east-1:896116135336:application:csye6225-webapp"
+                                "arn:aws:codedeploy:us-east-1:568769890102:application:csye6225-webapp"
                             ]
                         },
                         {
@@ -98,9 +98,9 @@
                                 "codedeploy:GetDeploymentConfig"
                             ],
                             "Resource": [
-                                "arn:aws:codedeploy:us-east-1:896116135336:deploymentconfig:CodeDeployDefault.OneAtATime",
-                                "arn:aws:codedeploy:us-east-1:896116135336:deploymentconfig:CodeDeployDefault.HalfAtATime",
-                                "arn:aws:codedeploy:us-east-1:896116135336:deploymentconfig:CodeDeployDefault.AllAtOnce"
+                                "arn:aws:codedeploy:us-east-1:568769890102:deploymentconfig:CodeDeployDefault.OneAtATime",
+                                "arn:aws:codedeploy:us-east-1:568769890102:deploymentconfig:CodeDeployDefault.HalfAtATime",
+                                "arn:aws:codedeploy:us-east-1:568769890102:deploymentconfig:CodeDeployDefault.AllAtOnce"
                             ]
                         }
                     ]
@@ -187,7 +187,8 @@
                     {
                         "Ref": "CodeDeployEC2S3"
                     },
-                    "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+                    "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
+                    "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
                 ],
                 "RoleName": "CodeDeployEC2ServiceRole"
             }
