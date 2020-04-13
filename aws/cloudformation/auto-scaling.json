@@ -1,9 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
     "Parameters": {
-        "keyname": {
-            "Type": "String"
-        },
         "AmiId": {
             "Type": "String",
             "Default": "ami-03bb592f47b272571"
@@ -14,47 +11,43 @@
         },
         "Accountno": {
             "Type": "String",
-            "Default": "896116135336"
+            "Default": "568769890102"
         },
         "DomainName": {
             "Type": "String",
-            "Default": "dev.zhaocxu.me."
+            "Default": "prod.zhaocxu.me."
         },
         "Subnet1Id": {
             "Type": "String",
-            "Default": "subnet-0bc607696b30bc6af"
+            "Default": "subnet-019df67aee9dd3620"
         },
         "Subnet2Id": {
             "Type": "String",
-            "Default": "subnet-0ae25e23fa80b3f7e"
+            "Default": "subnet-00b8070f0ba2d5060"
         },
         "Subnet3Id": {
             "Type": "String",
-            "Default": "subnet-0292adc3fdec1ba5d"
-        },
-        "Subnet4Id": {
-            "Type": "String",
-            "Default": "subnet-0292adc3fdec1ba5d"
+            "Default": "subnet-009bc9f1cdd692322"
         },
         "VpcId": {
             "Type": "String",
-            "Default": "vpc-03f517602990f991f"
+            "Default": "vpc-08dec84c3583bf4f1"
         },
         "WebAppS3Bucket": {
             "Type": "String",
-            "Default": "policy-stack-webapps3bucket-nr2tzhsoor5b"
+            "Default": "policy-stack-webapps3bucket-ivo9wyy2u3lu"
         },
         "CertificateARN": {
             "Type": "String",
-            "Default": "arn:aws:acm:us-east-1:896116135336:certificate/67d05d2a-d61b-49a7-bf42-724d356fd542"
+            "Default": "arn:aws:acm:us-east-1:568769890102:certificate/04547abc-cfbe-4cbc-a6f5-5b7698691fd1"
         },
         "fromaddress": {
             "Type": "String",
-            "Default": "assignment10@dev.zhaocxu.me"
+            "Default": "assignment11@prod.zhaocxu.me"
         },
         "codedeploybucket": {
             "Type": "String",
-            "Default": "codedeploy.zhaocxu.me"
+            "Default": "codedeploy.prod.zhaocxu.me"
         }
     },
     "Resources": {
@@ -64,10 +57,8 @@
                 "ImageId": {
                     "Ref": "AmiId"
                 },
+                "KeyName": "awsdemo",
                 "InstanceType": "t2.micro",
-                "KeyName": {
-                    "Ref": "keyname"
-                },
                 "IamInstanceProfile": "CodeDeployEC2ServiceRoleProfile",
                 "AssociatePublicIpAddress": true,
                 "SecurityGroups": [
@@ -358,45 +349,25 @@
                         "IpProtocol": "tcp",
                         "FromPort": 80,
                         "ToPort": 80,
-                        "SourceSecurityGroupId": {
-                            "Fn::GetAtt": [
-                                "loadbalancersecuritygroup",
-                                "GroupId"
-                            ]
-                        }
+                        "CidrIp": "0.0.0.0/0"
                     },
                     {
                         "IpProtocol": "tcp",
                         "FromPort": 22,
                         "ToPort": 22,
-                        "SourceSecurityGroupId": {
-                            "Fn::GetAtt": [
-                                "loadbalancersecuritygroup",
-                                "GroupId"
-                            ]
-                        }
+                        "CidrIp": "0.0.0.0/0"
                     },
                     {
                         "IpProtocol": "tcp",
                         "FromPort": 443,
                         "ToPort": 443,
-                        "SourceSecurityGroupId": {
-                            "Fn::GetAtt": [
-                                "loadbalancersecuritygroup",
-                                "GroupId"
-                            ]
-                        }
+                        "CidrIp": "0.0.0.0/0"
                     },
                     {
                         "IpProtocol": "tcp",
                         "FromPort": 8080,
                         "ToPort": 8080,
-                        "SourceSecurityGroupId": {
-                            "Fn::GetAtt": [
-                                "loadbalancersecuritygroup",
-                                "GroupId"
-                            ]
-                        }
+                        "CidrIp": "0.0.0.0/0"
                     }
                 ]
             }
@@ -495,6 +466,7 @@
                 "DBSubnetGroupName": {
                     "Ref": "RDSSubnetGroup"
                 },
+                "StorageEncrypted": "true",
                 "DBName": "csye6225",
                 "VPCSecurityGroups": [
                     {
