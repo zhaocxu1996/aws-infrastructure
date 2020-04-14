@@ -458,8 +458,10 @@
             "Properties": {
                 "AllocatedStorage": 50,
                 "Engine": "MySQL",
-                "DBInstanceClass": "db.t3.micro",
-                "DBInstanceIdentifier": "csye6225-spring2020-assignment7",
+                "EngineVersion": "8.0.17",
+                "DBInstanceClass": "db.m4.large",
+                "EnablePerformanceInsights": "true",
+                "DBInstanceIdentifier": "csye6225-spring2020-assignment11",
                 "MasterUsername": "dbuser",
                 "MasterUserPassword": "csye6225password",
                 "DBSubnetGroupName": {
